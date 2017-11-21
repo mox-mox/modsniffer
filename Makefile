@@ -1,5 +1,5 @@
-BINARY_NAME := modsniffer
-DESTDIR     := /usr
+BINARY_NAME := modsniff
+PREFIX      := /usr
 
 
 $(BINARY_NAME): main.cpp
