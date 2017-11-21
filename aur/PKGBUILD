@@ -1,0 +1,43 @@
+# Maintainer: mox <mox ät uni-hd D0T de>
+_pkgname=modsniff
+pkgname="${_pkgname}-git"
+pkgver=1.0.0
+pkgrel=1
+epoch=0
+pkgdesc="A simple key sniffer that unhides/hides polybar when a configurable key is pressed/released."
+arch=(any)
+url="https://github.com/mox-mox/modsniffer"
+license=('GPL')
+groups=()
+depends=('polybar' 'libx11' 'libxi')
+makedepends=()
+checkdepends=()
+optdepends=()
+provides=(modsniff)
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+
+source=("${_pkgname}::git+${url}.git")
+md5sums=("SKIP")
+validpgpkeys=()
+
+#prepare() {
+#	read -p "Press [Enter] key to start backup..."
+#	cd "$pkgname-$pkgver"
+#	patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
+#}
+
+build() {
+	cd "$_pkgname"
+	make
+}
+
+package() {
+	cd "$_pkgname"
+	make DESTDIR="$pkgdir/" install
+}
+
