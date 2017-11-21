@@ -20,7 +20,6 @@ std::vector < std::string > get_polybar_message_queues(void)
 	std::vector < std::string > retval;
 	for( auto& p: fs::directory_iterator("/tmp"))
 	{
-		//std::cout << p << '\n';
 		std::string path =  p.path().string();
 		if( path.find("/tmp/polybar_mqueue.") != std::string::npos )
 		{
@@ -32,31 +31,32 @@ std::vector < std::string > get_polybar_message_queues(void)
 }
 
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
-	if(argc<2)
+	// First argument is the keysym of the key which should trigger polybar
+	if( argc < 2 )
 	{
 		std::cerr<<"Please provide the keysym to watch."<<std::endl;
 		exit(EXIT_FAILURE);
-
 	}
 	std::string watched_mod = argv[1];
 
 
 
+	// Get all polybar message queues
 	std::vector < std::string > queues = get_polybar_message_queues();
 	for( auto& str : queues )
 		std::cout<<str<<std::endl;
 
 
 
+	// Initialise the X11 connection
 	Display* display = XOpenDisplay(NULL);
 	Window win;
 
 	win = DefaultRootWindow(display);
 	XIEventMask* m = new XIEventMask;
 
-	//m->deviceid = XIAllDevices;
 	m->deviceid = XIAllMasterDevices;
 	m->mask_len = XIMaskLen(XI_LASTEVENT);
 	m->mask = (unsigned char*) calloc(m->mask_len, sizeof(char));
@@ -91,18 +91,20 @@ int main(int argc, char * argv[])
 
 					//std::cout<<(cookie->evtype == XI_RawKeyPress ? "+" : "-")<<keysym_str<<std::endl;
 
-					if(!watched_mod.compare(keysym_str))
+					// Act only on the watched key
+					if( !watched_mod.compare(keysym_str))
 					{
-					for( auto& queue : queues )
-					{
-						std::ofstream queue_file(queue);
-						if( !queue_file.is_open())
+						for( auto& queue : queues )
 						{
-							std::cerr<<"Could not write to queue."<<std::endl;
-							exit(EXIT_FAILURE);
+							std::ofstream queue_file(queue);
+							if( !queue_file.is_open())
+							{
+								std::cerr<<"Could not write to queue."<<std::endl;
+								exit(EXIT_FAILURE);
+							}
+							// Show on key press, hide on key release
+							queue_file<<"cmd:"<<(cookie->evtype == XI_RawKeyPress ? "show" : "hide")<<std::endl;
 						}
-						queue_file<<"cmd:"<<(cookie->evtype == XI_RawKeyPress ? "show" : "hide")<<std::endl;
-					}
 					}
 
 					break;
